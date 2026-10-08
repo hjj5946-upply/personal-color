@@ -1,0 +1,28 @@
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-family);
+  min-width: var(--size-min-width);
+  line-height: 1.6;
+}
+main {
+  max-width: var(--size-column-max);
+  margin: 0 auto;
+  padding: var(--space-3) var(--space-2);
+}
+h1 { color: var(--color-text-strong); margin: 0 0 var(--space-1); }
+.sub { color: var(--color-text-sub); }
+.card {
+  background: var(--color-bg-sub);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-2);
+  margin-top: var(--space-2);
+}
+/* 색 판단 영역은 다크 모드여도 밝은 중립 배경 고정 (10) */
+.color-stage { background: var(--color-color-stage); }
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}

@@ -1,0 +1,22 @@
+{
+  "name": "@personal-color/web",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "typecheck": "tsc --noEmit",
+    "test": "echo \"web: no tests yet (M4부터)\""
+  },
+  "dependencies": {
+    "@personal-color/core": "*",
+    "@personal-color/design-tokens": "*",
+    "next": "^16.3.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0"
+  }
+}

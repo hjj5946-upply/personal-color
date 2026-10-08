@@ -1,0 +1,21 @@
+/* 자동 생성 파일: npm run tokens 로 만든다. 직접 수정 금지. */
+:root {
+  --color-bg: #FFFFFF;
+  --color-bg-sub: #F7F7F8;
+  --color-border: #EDEDEF;
+  --color-text: #3A3A40;
+  --color-text-strong: #111114;
+  --color-text-sub: #8E8E96;
+  --color-accent: #111114;
+  --color-color-stage: #FFFFFF;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --space-1: 8px;
+  --space-2: 16px;
+  --space-3: 24px;
+  --space-4: 32px;
+  --size-touch-min: 44px;
+  --size-min-width: 360px;
+  --size-column-max: 480px;
+  --font-family: Pretendard, -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+}

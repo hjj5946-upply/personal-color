@@ -1,0 +1,44 @@
+# --- 비밀 (S-1) ---
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+secrets/
+service-account*.json
+
+# --- 의존성/빌드 ---
+node_modules/
+.next/
+out/
+dist/
+coverage/
+*.tsbuildinfo
+.turbo/
+
+# --- 샘플 사진 커밋 금지 (O-1, 지침 v1.1) : 수치 fixture(JSON)만 커밋한다 ---
+samples/
+sample-photos/
+fixtures-private/
+*.jpg
+*.jpeg
+*.heic
+*.heif
+*.webp
+*.tiff
+*.bmp
+# 예외: 웹 앱 아이콘·정적 자산은 apps/web/public 아래 png/svg만 허용 (webp/jpg는 금지)
+!apps/web/public/**/*.svg
+
+# --- 기타 ---
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+*.log
+npm-debug.log*
+
+# --- 개인 로컬 설정 ---
+.claude/settings.local.json
