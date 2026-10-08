@@ -16,7 +16,7 @@
     "check": "npm run check:secrets && npm run check:photos && npm run typecheck && npm run test && npm run build"
   },
   "devDependencies": {
-    "@types/node": "^22.0.0",
+    "@types/node": "^26.6.4",
     "typescript": "^5.9.0"
   }
 }
