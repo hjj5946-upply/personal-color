@@ -18,8 +18,12 @@ const NONDETERMINISTIC = [
 
 describe("결정성", () => {
   it("core 로직 파일(테스트 제외)에 난수·현재 시각 사용이 없다", () => {
-    const files = readdirSync(SRC).filter((f) => f.endsWith(".ts") && !f.endsWith(".test.ts"));
-    expect(files.length).toBeGreaterThan(0);
+    // 하위 폴더 포함. 경로 구분자는 OS와 무관하게 "/" 로 맞춘다.
+    const files = readdirSync(SRC, { recursive: true })
+      .map((f) => String(f).split("\\").join("/"))
+      .filter((f) => f.endsWith(".ts") && !f.endsWith(".test.ts"));
+    expect(files).toContain("quality.ts");
+    expect(files).toContain("testing/quality-test-config.ts");
     for (const f of files) {
       const text = readFileSync(new URL(f, SRC), "utf8");
       for (const re of NONDETERMINISTIC) expect(re.test(text), `${f}: ${re}`).toBe(false);
