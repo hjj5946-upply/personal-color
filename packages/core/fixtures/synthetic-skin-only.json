@@ -1,0 +1,26 @@
+{
+  "_note": "지어낸 숫자예요. 실제 사람에게서 뽑은 값이 아니에요 (M1 규칙, 결정 로그 M1-범위).",
+  "synthetic": true,
+  "description": "피부만 있음 → contrast는 null",
+  "sample": {
+    "skin": [
+      {
+        "r": 220,
+        "g": 180,
+        "b": 160
+      },
+      {
+        "r": 214,
+        "g": 174,
+        "b": 155
+      }
+    ]
+  },
+  "expected": {
+    "warmCool": 53.0111,
+    "lightness": 75.2313,
+    "chroma": 19.3384,
+    "contrast": null,
+    "skinBStar": 15.4466
+  }
+}
