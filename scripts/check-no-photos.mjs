@@ -1,4 +1,4 @@
-// 샘플 사진 커밋 금지 검사 (O-1, 지침 v1.1). 수치 fixture(JSON)만 커밋한다.
+// 샘플 사진 커밋 금지 검사 (O-1, 지침 v1.1). 실제 사진·실측 수치는 저장소 밖에서만 쓴다 (결정 로그 M3-D8).
 import { walk } from "./lib.mjs";
 
 const ALWAYS_BAD = /\.(jpe?g|heic|heif|webp|tiff?|bmp|gif)$/i;

@@ -19,3 +19,4 @@
 | 11-dependencies.md | 패키지 목록과 사용 이유·라이선스 |
 | 12-v1.1-changes.md | v1.0 이후 추가·변경 (**승인됨** 2026-10-08) |
 | 13-open-items.md | 미정·확인필요 목록 |
+| 14-accuracy-report-template.md | M3-3 정확도 점검 보고서 형식 (집계만) |
