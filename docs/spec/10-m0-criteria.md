@@ -13,6 +13,6 @@
 | 7 | JPG/HEIC 등 사진 파일을 넣으면 `check:photos`가 실패하고 `.gitignore`가 막음 | 테스트 파일로 확인 |
 | 8 | 디자인 토큰 JSON → CSS 변수 생성, 웹에서 사용 | `npm run tokens` |
 | 9 | CI 워크플로가 GitHub에서 통과 | 첫 push 후 확인 |
-| 10 | GitHub 저장소 설정: Secret scanning·Push protection·Dependabot 알림 ON (S-2) | 저장소 Settings (기획자 수동) |
+| 10 | GitHub 저장소 설정: Secret scanning·Push protection·Dependabot 알림 ON (S-2) | 저장소 Settings (기획자 수동) — **기획자 확인 완료 (2026-10-08)** |
 
-**기획자 수동 작업:** ⑩ GitHub 설정, 저장소 이름 확정(N-4), 문의용 이메일 준비(공개 전).
+**기획자 수동 작업:** ~~⑩ GitHub 설정~~(완료), 저장소 이름 확정(N-4), 문의용 이메일 준비(공개 전).
