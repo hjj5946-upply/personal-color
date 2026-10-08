@@ -1,4 +1,6 @@
 * { box-sizing: border-box; }
+/* 1단계는 라이트 모드 고정 (06). 시스템 다크 모드여도 폼·스크롤바 등 기본 요소를 밝게 그린다. */
+:root { color-scheme: light; }
 html, body { margin: 0; padding: 0; }
 body {
   background: var(--color-bg);

@@ -14,6 +14,8 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
+  // 1단계 라이트 모드 고정 (06). CSS 로드 전에도 브라우저가 밝게 그리도록 meta 로도 알린다.
+  colorScheme: "light",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
