@@ -20,5 +20,6 @@
 | 12-v1.1-changes.md | v1.0 이후 추가·변경 (**승인됨** 2026-10-08) |
 | 13-open-items.md | 미정·확인필요 목록 |
 | 14-accuracy-report-template.md | M3-3 정확도 점검 보고서 형식 (집계만) |
+| 15-handoff.md | **세션 인수인계 (다음 세션은 여기서 시작)** |
 | 15-device-checklist.md | 지원 브라우저 실기기 확인표 (휴대폰·인앱은 M4) |
 | 16-sample-consent-draft.md | 정확도 점검 샘플 참여 동의서 초안 |
