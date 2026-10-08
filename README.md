@@ -8,7 +8,7 @@ npm install
 npm run dev        # http://localhost:3000
 npm run check      # 비밀·사진 검사 + 타입체크 + 테스트 + 빌드
 ```
-Node 22 이상 필요.
+Node 22.12 이상 필요 (vitest 5 요구 사항).
 
 ## 구조
 `apps/web` · `apps/api`(예정) · `apps/mobile`(3단계) · `packages/core` · `packages/design-tokens` · `docs/spec`

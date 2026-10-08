@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "description": "personal-color monorepo (web + core + design tokens)",
   "workspaces": ["apps/*", "packages/*"],
-  "engines": { "node": ">=22" },
+  "engines": { "node": ">=22.12" },
   "scripts": {
     "dev": "npm run dev -w apps/web",
     "build": "npm run build -w apps/web",

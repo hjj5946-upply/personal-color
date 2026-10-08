@@ -4,6 +4,13 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    ignore:
+      # Node 런타임 기준(22)과 타입 정의 메이저를 맞춘다. Node 메이저를 올릴 때 함께 올린다. (결정 로그 M0-5)
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
+      # TypeScript 7 은 M3 시작 전까지 보류 (11-dependencies, 13-open-items)
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
