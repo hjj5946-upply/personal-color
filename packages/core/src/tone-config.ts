@@ -33,12 +33,44 @@ export const TONES_16: readonly ToneDef[] = [
   { id: "winter_deepmute", no: 16, nameKo: "겨울 딥뮤트", season4: "winter", warmCool: "cool", lightness: "dark", chroma: "muted" },
 ] as const;
 
-/** 경계값 자리표시자. 실제 수치는 M3에서 샘플 사진으로 1차 설정하고 지인 피드백으로 튜닝 [미정]. */
-export const TONE_THRESHOLDS = {
-  warmCoolSplit: null as number | null,
-  lightnessCuts: null as [number, number, number] | null,
-  chromaSplit: null as number | null,
-} as const;
+/** 16톤 경계값. 단위는 특징값과 같다 (02 특징값 정의). */
+export interface ToneThresholds {
+  /** warmCool(피부 h°) 이 값 이상이면 웜 */
+  warmCoolSplit: number;
+  /** lightness(피부 L*) 경계 3개, 오름차순: 어두움 | 중하 | 중상 | 밝음 */
+  lightnessCuts: readonly [number, number, number];
+  /** chroma(피부 C*) 이 값 이상이면 선명 */
+  chromaSplit: number;
+}
+
+/** 아직 정하지 않은 상태를 포함한 경계값 */
+export type ToneThresholdsDraft = { readonly [K in keyof ToneThresholds]: ToneThresholds[K] | null };
+
+/** 경계값 자리표시자. 실제 수치는 M3에서 샘플 사진으로 1차 설정하고 지인 피드백으로 튜닝 [미정]. 추정으로 채우지 않는다. */
+export const TONE_THRESHOLDS: ToneThresholdsDraft = {
+  warmCoolSplit: null,
+  lightnessCuts: null,
+  chromaSplit: null,
+};
+
+/** 경계값이 아직 설정되지 않았거나 잘못됐을 때 */
+export class ToneConfigNotSetError extends Error {
+  override name = "ToneConfigNotSetError";
+}
+
+/** 판정(M3)에서 경계값을 쓰기 전에 부른다. 하나라도 비어 있으면 "미설정" 오류. */
+export function requireToneThresholds(draft: ToneThresholdsDraft = TONE_THRESHOLDS): ToneThresholds {
+  const missing = (Object.keys(draft) as (keyof ToneThresholds)[]).filter((k) => draft[k] === null);
+  if (missing.length) {
+    throw new ToneConfigNotSetError(
+      `16톤 경계값 미설정: ${missing.join(", ")} (configVersion ${CONFIG_VERSION}). M3에서 샘플로 정한다.`,
+    );
+  }
+  const t = draft as ToneThresholds;
+  const [c1, c2, c3] = t.lightnessCuts;
+  if (!(c1 < c2 && c2 < c3)) throw new ToneConfigNotSetError("lightnessCuts 는 오름차순 3개여야 해요");
+  return t;
+}
 
 export function getTone(id: string): ToneDef | undefined {
   return TONES_16.find((t) => t.id === id);
