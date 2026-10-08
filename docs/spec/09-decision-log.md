@@ -15,4 +15,5 @@
 | 10차 | 서비스 이름 **퍼코디**, 이름 관련 규칙 N-1~N-5, 도메인·상표 검색 생략 |
 | 11차 | O-1 보강(임시 저장은 수치만), 지원 환경·성능·접근성·색 정확도 규칙, 영문 표기·태그라인 기본값, 외부 분석 도구 미사용, noindex, 대표 진단 규칙, 인앱 브라우저 대응 |
 | 구현 착수 | 저장소는 기획자가 직접 만들어 VS Code에서 git 등록. 뼈대는 에이전트가 생성(npm workspaces). 뼈대 기본값: TypeScript 5.x, Next.js 16, Vitest 3 (아래 11-dependencies 참고) |
+| M0-A (2026-10-08) | 검사 스크립트는 **Windows와 리눅스 둘 다** 통과해야 한다(경로 계산 수정, 경로 구분자 `/`로 정규화). 비밀 패턴에 Supabase 새 비밀 키(`sb_secret_`)와 `…SERVICE_ROLE…=값` 형태 추가(13 확인 기록). `.gitignore`에 png·gif 추가(`apps/web/public` 아래 png만 예외), 대문자 확장자는 `check:photos`가 담당 |
 | M0-5 (2026-10-08) | 의존성: Vitest 5 PR 수용(3.x 취약점 해소, Node `>=22.12`), `@types/node` 26 PR 거절 + Dependabot이 `@types/node` 메이저 무시, TypeScript 7은 **M3 시작 전까지 보류**(Dependabot도 메이저 무시) |

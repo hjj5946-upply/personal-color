@@ -7,8 +7,11 @@ const PATTERNS = [
   { name: "AWS access key", re: /AKIA[0-9A-Z]{16}/ },
   { name: "Private key block", re: /-----BEGIN (RSA |EC |OPENSSH |)PRIVATE KEY-----/ },
   { name: "GitHub token", re: /gh[pousr]_[A-Za-z0-9]{30,}/ },
-  { name: "Supabase service_role / JWT", re: /eyJ[A-Za-z0-9_-]{10,}\.eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}/ },
-  { name: "Generic secret assignment", re: /(SECRET|SERVICE_ROLE|API_KEY|PRIVATE_KEY)\s*[=:]\s*["']?[A-Za-z0-9_\-\/+]{24,}/ },
+  // Supabase 키 형식은 docs/spec/13-open-items.md "확인 기록" 참고 (2026-10-08 공식 문서 확인)
+  { name: "Supabase secret key (sb_secret_)", re: /sb_secret_[A-Za-z0-9_-]{10,}/ },
+  { name: "Supabase legacy service_role / JWT", re: /eyJ[A-Za-z0-9_-]{10,}\.eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}/ },
+  // 변수 이름 앞뒤에 글자가 더 붙어도 잡는다. 예: SUPABASE_SERVICE_ROLE_KEY=값, ANTHROPIC_API_KEY: "값"
+  { name: "Generic secret assignment", re: /[A-Z0-9_]*(SECRET|SERVICE_ROLE|API_KEY|PRIVATE_KEY|ACCESS_TOKEN)[A-Z0-9_]*\s*[=:]\s*["']?[A-Za-z0-9_\-\/+]{20,}/ },
 ];
 const TEXT_EXT = /\.(ts|tsx|js|mjs|cjs|json|md|yml|yaml|css|html|txt|env|toml|sh)$/i;
 const SELF = "scripts/check-secrets.mjs";
