@@ -43,3 +43,10 @@ export interface Lab {
   a: number;
   b: number;
 }
+
+/** CIE LCh(ab). c: 채도 C*, h: 색상각 0 이상 360 미만(°) */
+export interface LCh {
+  l: number;
+  c: number;
+  h: number;
+}
