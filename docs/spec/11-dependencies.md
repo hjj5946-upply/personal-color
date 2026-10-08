@@ -5,7 +5,7 @@
 |---|---|---|
 | next, react, react-dom | 웹 프런트 (정적 내보내기) | MIT |
 | typescript | 타입 검사 (**5.9.x 고정. 7.x는 M3 시작 전까지 보류**, 그때 호환 검증 후 결정. Dependabot도 메이저 업데이트 무시) | Apache-2.0 |
-| vitest | core 단위 테스트 (**5.x**. 3.x의 tinypool 취약점 해소. Node `^22.12.0` 이상 필요) | MIT |
+| vitest | core 단위 테스트, design-tokens 대비 테스트 (**5.x**. 3.x의 tinypool 취약점 해소. Node `^22.12.0` 이상 필요) | MIT |
 | @types/node | Node 타입 정의 (**22.x 고정**, Node 런타임 기준과 맞춤. Dependabot 메이저 업데이트 무시) | MIT |
 | @types/react, @types/react-dom | 타입 정의 | MIT |
 

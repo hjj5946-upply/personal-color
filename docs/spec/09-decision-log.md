@@ -18,4 +18,5 @@
 | M0-A (2026-10-08) | 검사 스크립트는 **Windows와 리눅스 둘 다** 통과해야 한다(경로 계산 수정, 경로 구분자 `/`로 정규화). 비밀 패턴에 Supabase 새 비밀 키(`sb_secret_`)와 `…SERVICE_ROLE…=값` 형태 추가(13 확인 기록). `.gitignore`에 png·gif 추가(`apps/web/public` 아래 png만 예외), 대문자 확장자는 `check:photos`가 담당 |
 | M0-C (2026-10-08) | M0 기준 1의 확인 환경은 **Windows 로컬 + 리눅스 CI 둘 다**. `apps/web/next-env.d.ts`는 Next.js가 매번 다시 만드는 파일이라 git에서 제외(추적 해제) |
 | M0-4 (2026-10-08) | Next.js의 에이전트 파일(`AGENTS.md`/`CLAUDE.md`) 자동 생성은 `next.config`의 `agentRules: false`로 끈다. 에이전트 규칙은 루트 `CLAUDE.md` 하나 |
+| M0-6 (2026-10-08) | 보조 글자색 `#8E8E96` → **`#6B6B73`**(흰 배경 5.28:1, `#F7F7F8` 4.93:1). 글자색 토큰 × 배경 토큰 대비 4.5:1 이상을 자동 테스트로 보장 |
 | M0-5 (2026-10-08) | 의존성: Vitest 5 PR 수용(3.x 취약점 해소, Node `>=22.12`), `@types/node` 26 PR 거절 + Dependabot이 `@types/node` 메이저 무시, TypeScript 7은 **M3 시작 전까지 보류**(Dependabot도 메이저 무시) |
