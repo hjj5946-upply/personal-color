@@ -15,7 +15,7 @@
 | 07-milestones.md | 마일스톤 M0~M12, 에이전트 규칙 G-1~G-10 |
 | 08-legal-security-ops.md | 개인정보·법무·보안·운영 규칙 |
 | 09-decision-log.md | 결정 로그 |
-| 10-m0-criteria.md | M0 완료 기준 **제안** (승인 대기) |
+| 10-m0-criteria.md | M0 완료 기준 (**완료** 2026-10-08) |
 | 11-dependencies.md | 패키지 목록과 사용 이유·라이선스 |
 | 12-v1.1-changes.md | v1.0 이후 추가·변경 (**승인됨** 2026-10-08) |
 | 13-open-items.md | 미정·확인필요 목록 |

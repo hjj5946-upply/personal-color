@@ -24,3 +24,4 @@
 | M0-9 (2026-10-08) | **1단계는 라이트 모드 고정**(`color-scheme: light`). 다크 모드는 이후 단계에서 재결정 |
 | M0-C (2026-10-08) | M0 기준 1의 확인 환경은 **Windows 로컬 + 리눅스 CI 둘 다**. `apps/web/next-env.d.ts`는 Next.js가 매번 다시 만드는 파일이라 git에서 제외(추적 해제) |
 | M0-10 (2026-10-08) | GitHub 저장소 Secret scanning·Push protection·Dependabot 알림 ON — **기획자 확인 완료** |
+| M0-완료 (2026-10-08) | **M0 완료 승인.** 기준 10개 모두 통과(Windows 로컬 + 리눅스 CI, 커밋 `8f5a673`). 현재 마일스톤을 **M1**로 변경, M1 범위·완료 기준은 제안 후 승인받아 구현 |
