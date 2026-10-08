@@ -17,6 +17,8 @@ coverage/
 .turbo/
 # Next.js가 dev/build 때마다 다시 만든다(내용이 dev·build에 따라 바뀜). 추적하지 않는다.
 next-env.d.ts
+# MediaPipe 실행 엔진·모델: 빌드 때 준비하는 파일 (결정 로그 M3-D2). 저장소에 넣지 않는다.
+apps/web/public/mediapipe/
 
 # --- 샘플 사진 커밋 금지 (O-1, 지침 v1.1) : 실제 사진·실측 수치는 저장소 밖에서만. 커밋은 지어낸 fixture·기준값·집계 정확도만 ---
 samples/

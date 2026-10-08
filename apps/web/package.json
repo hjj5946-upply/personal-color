@@ -3,12 +3,15 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
+    "predev": "node scripts/prepare-mediapipe.mjs",
     "dev": "next dev",
+    "prebuild": "node scripts/prepare-mediapipe.mjs",
     "build": "next build",
     "typecheck": "tsc --noEmit",
-    "test": "echo \"web: no tests yet (M4부터)\""
+    "test": "vitest run"
   },
   "dependencies": {
+    "@mediapipe/tasks-vision": "1.1.0",
     "@personal-color/core": "*",
     "@personal-color/design-tokens": "*",
     "next": "^16.3.0",
@@ -17,6 +20,7 @@
   },
   "devDependencies": {
     "@types/react": "^19.2.0",
-    "@types/react-dom": "^19.2.0"
+    "@types/react-dom": "^19.2.0",
+    "vitest": "^5.0.3"
   }
 }
