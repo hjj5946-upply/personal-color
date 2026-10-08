@@ -4,7 +4,7 @@
 
 | # | 기준 | 확인 방법 |
 |---|---|---|
-| 1 | `npm install` 후 `npm run check`가 오류 없이 통과 | 로컬 실행 |
+| 1 | `npm install` 후 `npm run check`가 오류 없이 통과 | **Windows 로컬 + 리눅스 CI 둘 다** |
 | 2 | `npm run dev`로 홈 화면(서비스 이름·태그라인·"참고용" 문구)이 보임 | 브라우저 |
 | 3 | 정적 내보내기 빌드 성공 (`apps/web/out`), API Routes 없음 | `npm run build` |
 | 4 | `noindex` 메타 + `robots.txt`(Disallow) 적용 | 빌드 결과 확인 |

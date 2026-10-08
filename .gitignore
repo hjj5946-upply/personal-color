@@ -15,6 +15,8 @@ dist/
 coverage/
 *.tsbuildinfo
 .turbo/
+# Next.js가 dev/build 때마다 다시 만든다(내용이 dev·build에 따라 바뀜). 추적하지 않는다.
+next-env.d.ts
 
 # --- 샘플 사진 커밋 금지 (O-1, 지침 v1.1) : 수치 fixture(JSON)만 커밋한다 ---
 samples/
@@ -27,7 +29,11 @@ fixtures-private/
 *.webp
 *.tiff
 *.bmp
-# 예외: 웹 앱 아이콘·정적 자산은 apps/web/public 아래 png/svg만 허용 (webp/jpg는 금지)
+*.png
+*.gif
+# 예외: 웹 앱 아이콘·정적 자산은 apps/web/public 아래 png/svg만 허용 (webp/jpg/gif는 금지)
+# 대문자 확장자(.JPG 등)는 OS에 따라 여기서 안 막힐 수 있어 check:photos가 대소문자 무관하게 잡는다
+!apps/web/public/**/*.png
 !apps/web/public/**/*.svg
 
 # --- 기타 ---
