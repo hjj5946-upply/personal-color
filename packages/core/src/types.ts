@@ -15,7 +15,7 @@ export interface ColorAxes {
   warmCool: number;
   lightness: number;
   chroma: number;
-  contrast: number;
+  contrast: number | null; // 머리카락·눈동자 둘 다 없으면 null (02 특징값 정의)
 }
 
 export interface ColorProfile {
