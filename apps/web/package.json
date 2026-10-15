@@ -15,7 +15,7 @@
     "@mediapipe/tasks-vision": "1.1.0",
     "@personal-color/core": "*",
     "@personal-color/design-tokens": "*",
-    "next": "^16.3.0",
+    "next": "^16.4.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
   },
