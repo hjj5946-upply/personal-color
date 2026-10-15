@@ -13,9 +13,9 @@ import { loadFaceLandmarker } from "./landmarker";
 export interface ExtractionResult {
   /** 얼굴이 정확히 1명이고 피부를 뽑았을 때만 값이 있다 */
   sample: ColorSample | null;
-  /** M3-1a: faceCount·faceSize·faceAngle. 밝기 등은 M3-1b */
+  /** faceCount·faceSize·faceAngle(M3-1a), 밝기 두 비율·색 편향·선명도(M3-1b). 보정·필터 의심은 재지 않음(건너뜀) */
   measurements: QualityMeasurements;
-  /** 개발용 확인 화면 표시용 (ms) */
+  /** 개발용 확인 화면 표시용 (ms). extract 에는 영역 추출과 품질 측정이 함께 들어간다 */
   timings: { modelLoad: number; decode: number; detect: number; extract: number };
   /** 분석에 쓴 크기 */
   size: { width: number; height: number; originalWidth: number; originalHeight: number };
@@ -53,6 +53,7 @@ export async function extractFromPhoto(
       sample = face.sample;
       measurements.faceSize = face.faceSize;
       if (face.faceAngle !== undefined) measurements.faceAngle = face.faceAngle;
+      Object.assign(measurements, face.quality);
     }
     const t4 = performance.now();
 

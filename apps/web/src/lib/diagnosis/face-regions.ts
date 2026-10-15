@@ -3,6 +3,7 @@
 // O-2: 랜드마크 좌표는 이 함수 안에서만 쓰고 결과에 넣지 않는다. 결과는 색 값과 숫자 측정값뿐.
 import { validateColorSample, type ColorSample, type Rgb } from "@personal-color/core";
 import { regionMedianRgb, type PixelBuffer, type Point } from "./pixels";
+import { measureImageQuality, type PixelRect } from "./quality-measure";
 
 /** MediaPipe 정규화 랜드마크 (x·y 는 0~1, 이미지 너비·높이 기준) */
 export interface NormalizedLandmark {
@@ -56,6 +57,8 @@ export interface FaceExtraction {
   faceSize: number;
   /** 얼굴 각도: 정면에서 돌아간 전체 각도(°) [임시 정의, M3-3에서 확정]. 행렬이 없으면 undefined */
   faceAngle: number | undefined;
+  /** 밝기 두 비율·색 편향·선명도 (M3-1b). 못 잰 값은 빠진다 */
+  quality: ReturnType<typeof measureImageQuality>;
 }
 
 const toPx = (l: NormalizedLandmark | undefined, buf: PixelBuffer): Point | null =>
@@ -77,6 +80,23 @@ export function faceSizeRatio(landmarks: readonly NormalizedLandmark[]): number 
     y1 = Math.max(y1, y);
   }
   return x1 > x0 && y1 > y0 ? (x1 - x0) * (y1 - y0) : 0;
+}
+
+/** 랜드마크 외곽 상자를 픽셀 단위로 (이미지 밖은 잘라냄). O-2: 측정에만 쓰고 결과에 넣지 않는다. */
+export function faceBoxPx(landmarks: readonly NormalizedLandmark[], buf: PixelBuffer): PixelRect | null {
+  let x0 = 1;
+  let y0 = 1;
+  let x1 = 0;
+  let y1 = 0;
+  for (const l of landmarks) {
+    if (!Number.isFinite(l.x) || !Number.isFinite(l.y)) continue;
+    x0 = Math.min(x0, Math.max(0, l.x));
+    y0 = Math.min(y0, Math.max(0, l.y));
+    x1 = Math.max(x1, Math.min(1, l.x));
+    y1 = Math.max(y1, Math.min(1, l.y));
+  }
+  if (!(x1 > x0 && y1 > y0)) return null;
+  return { x0: x0 * buf.width, y0: y0 * buf.height, x1: x1 * buf.width, y1: y1 * buf.height };
 }
 
 /**
@@ -111,12 +131,14 @@ export function extractFace(
   const P = (i: number) => toPx(landmarks[i], buf);
   const faceSize = faceSizeRatio(landmarks);
   const faceAngle = matrix ? rotationAngleDeg(matrix) : undefined;
+  const box = faceBoxPx(landmarks, buf);
+  const quality = box ? measureImageQuality(buf, box) : {};
 
   const eyeA = P(LANDMARK.eyeOuterA);
   const eyeB = P(LANDMARK.eyeOuterB);
   const top = P(LANDMARK.faceTop);
   const chin = P(LANDMARK.chin);
-  if (!eyeA || !eyeB || !top || !chin) return { sample: null, faceSize, faceAngle };
+  if (!eyeA || !eyeB || !top || !chin) return { sample: null, faceSize, faceAngle, quality };
 
   const eyeSpan = dist(eyeA, eyeB);
   const faceHeight = dist(top, chin);
@@ -153,10 +175,10 @@ export function extractFace(
     [lift(P(LANDMARK.hairlineB)), hairR],
   ]);
 
-  if (skin.length === 0) return { sample: null, faceSize, faceAngle };
+  if (skin.length === 0) return { sample: null, faceSize, faceAngle, quality };
   const candidate: ColorSample = { skin };
   if (hair.length) candidate.hair = hair;
   if (iris.length) candidate.iris = iris;
   const checked = validateColorSample(candidate);
-  return { sample: checked.ok ? checked.sample : null, faceSize, faceAngle };
+  return { sample: checked.ok ? checked.sample : null, faceSize, faceAngle, quality };
 }
