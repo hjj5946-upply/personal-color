@@ -1,6 +1,6 @@
 // 품질 검사 판정 (02 품질 검사 규칙). 결정적. 측정값 숫자는 결과에 담지 않는다 (O-2).
 import { QUALITY_CONFIG, RANGE_CHECK_IDS, RANGE_CHECK_MEASUREMENT, requireQualityConfig } from "./quality-config";
-import type { QualityConfigDraft, Range, RangeCheckId, ResolvedBound } from "./quality-config";
+import type { Ceiling, QualityConfigDraft, Range, RangeCheckId, ResolvedBound } from "./quality-config";
 import type { QualityMeasurements } from "./quality-measurements";
 import { CONFIG_VERSION } from "./tone-config";
 
@@ -53,15 +53,32 @@ export interface QualityResult {
   configVersion: string;
 }
 
-/** 범위를 벗어난 쪽. 경계값과 같으면 통과. */
-function outside(v: number, r: Range<ResolvedBound>): "low" | "high" | null {
-  if (typeof r.min === "number" && v < r.min) return "low";
+/** 범위를 벗어난 쪽. 경계값과 같으면 통과. 상한만 있는 기준은 "high" 만 나온다. */
+function outside(v: number, r: Range<ResolvedBound> | Ceiling<ResolvedBound>): "low" | "high" | null {
+  if ("min" in r && typeof r.min === "number" && v < r.min) return "low";
   if (typeof r.max === "number" && v > r.max) return "high";
   return null;
 }
 
-// 항목 id 와 low/high/unmeasured 를 이어 붙인 값은 항상 QUALITY_REASON_CODES 안에 있다 (테스트로 보장).
-const code = (s: string) => s as QualityReasonCode;
+/**
+ * 항목 → 이유 코드. 밝기는 두 숫자가 각각 brightness_low(어두운 쪽)·brightness_high(밝은 쪽)에 연결된다
+ * (결정 로그 M3-1b-Q2). 상한만 있는 항목은 low 가 나오지 않으므로 low 를 두지 않는다.
+ */
+const REASONS: Readonly<
+  Record<RangeCheckId, { low?: QualityReasonCode; high: QualityReasonCode; unmeasured?: QualityReasonCode }>
+> = {
+  face_size: { low: "face_size_low", high: "face_size_high", unmeasured: "face_size_unmeasured" },
+  face_angle: { low: "face_angle_low", high: "face_angle_high", unmeasured: "face_angle_unmeasured" },
+  brightness_dark: { high: "brightness_low", unmeasured: "brightness_unmeasured" },
+  brightness_bright: { high: "brightness_high", unmeasured: "brightness_unmeasured" },
+  color_cast: { low: "color_cast_low", high: "color_cast_high", unmeasured: "color_cast_unmeasured" },
+  sharpness: { low: "sharpness_low", high: "sharpness_high", unmeasured: "sharpness_unmeasured" },
+  // 경고만 있는 항목: 못 재면 항상 건너뜀이라 unmeasured 코드가 없다
+  filter_suspicion: { low: "filter_suspicion_low", high: "filter_suspicion_high" },
+};
+
+const reasonFor = (id: RangeCheckId, side: "low" | "high"): QualityReasonCode =>
+  (side === "low" ? REASONS[id].low : undefined) ?? REASONS[id].high;
 
 /**
  * 측정값을 품질 기준으로 판정한다. 기준이 미정이면 QualityConfigNotSetError.
@@ -84,17 +101,19 @@ export function evaluateQuality(m: QualityMeasurements, draft: QualityConfigDraf
     if (rule.dependsOnFace && !faceOk) {
       checks.push({ id, status: "skipped", reason: "skipped_no_face" });
     } else if (v === undefined) {
-      // 보정·필터 의심은 못 재면 건너뜀(진단을 막지 않음). 그 밖은 실패.
+      // 못 재면 항목별 설정대로 실패 또는 건너뜀 (경고만 있는 항목은 항상 건너뜀, M3-1b-Q3)
+      const onUnmeasured = "onUnmeasured" in rule ? rule.onUnmeasured : "skip";
+      const unmeasured = REASONS[id].unmeasured;
       checks.push(
-        id === "filter_suspicion"
-          ? { id, status: "skipped", reason: "skipped_unmeasured" }
-          : { id, status: "fail", reason: code(`${id}_unmeasured`) },
+        onUnmeasured === "fail" && unmeasured
+          ? { id, status: "fail", reason: unmeasured }
+          : { id, status: "skipped", reason: "skipped_unmeasured" },
       );
     } else {
       const failSide = "fail" in rule ? outside(v, rule.fail) : null;
       const warnSide = failSide ? null : outside(v, rule.warn);
-      if (failSide) checks.push({ id, status: "fail", reason: code(`${id}_${failSide}`) });
-      else if (warnSide) checks.push({ id, status: "warn", reason: code(`${id}_${warnSide}`) });
+      if (failSide) checks.push({ id, status: "fail", reason: reasonFor(id, failSide) });
+      else if (warnSide) checks.push({ id, status: "warn", reason: reasonFor(id, warnSide) });
       else checks.push({ id, status: "pass" });
     }
   }

@@ -1,5 +1,5 @@
 // 품질 검사 입력: 브라우저가 이미지에서 계산해 온 측정값 숫자 (02 품질 검사 규칙).
-// 측정값마다 숫자 하나. 단위·측정 방법은 M3에서 샘플로 정한다. 측정하지 못한 값은 빼고 보낸다.
+// 측정값마다 숫자 하나. 단, 밝기는 어두운 쪽·밝은 쪽 비율 두 숫자 (결정 로그 M3-1b-Q2). 측정하지 못한 값은 빼고 보낸다.
 // O-1·O-2: 사진·좌표는 받지 않는다. 얼굴에서 나온 측정값은 판정에만 쓰고 결과·저장소·로그에 남기지 않는다.
 
 export interface QualityMeasurements {
@@ -7,7 +7,10 @@ export interface QualityMeasurements {
   faceCount?: number;
   faceSize?: number;
   faceAngle?: number;
-  brightness?: number;
+  /** 밝기: 얼굴 상자 안에서 어두운 쪽으로 뭉개진 픽셀 비율 (0~1) → brightness_low */
+  brightnessDark?: number;
+  /** 밝기: 얼굴 상자 안에서 밝은 쪽으로 날아간 픽셀 비율 (0~1) → brightness_high */
+  brightnessBright?: number;
   colorCast?: number;
   sharpness?: number;
   filterSuspicion?: number;
@@ -17,7 +20,8 @@ export const MEASUREMENT_KEYS = [
   "faceCount",
   "faceSize",
   "faceAngle",
-  "brightness",
+  "brightnessDark",
+  "brightnessBright",
   "colorCast",
   "sharpness",
   "filterSuspicion",
@@ -27,6 +31,8 @@ export type MeasurementValidation =
   | { ok: true; measurements: QualityMeasurements }
   | { ok: false; errors: string[] };
 
+/** 비율 측정값 (0~1) */
+const RATIO_KEYS: ReadonlySet<string> = new Set(["brightnessDark", "brightnessBright"]);
 const ALLOWED: ReadonlySet<string> = new Set(MEASUREMENT_KEYS);
 /** 들어오면 특히 위험한 필드 이름. 차단 자체는 허용 목록이 한다. */
 const FORBIDDEN_HINT = /landmark|image|photo|pixel|coord|point|mesh|bbox|box|canvas|blob|url|base64|embedding|descriptor/i;
@@ -60,6 +66,10 @@ export function validateQualityMeasurements(input: unknown): MeasurementValidati
     }
     if (k === "faceCount" && !(Number.isInteger(v) && v >= 0)) {
       errors.push(`${k}: 0 이상 정수여야 해요`);
+      continue;
+    }
+    if (RATIO_KEYS.has(k) && !(v >= 0 && v <= 1)) {
+      errors.push(`${k}: 0~1 비율이어야 해요`);
       continue;
     }
     out[k] = v;

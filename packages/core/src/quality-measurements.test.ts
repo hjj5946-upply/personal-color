@@ -8,7 +8,16 @@ const errorsOf = (input: unknown) => {
 
 describe("validateQualityMeasurements — 통과", () => {
   it("모든 측정값", () => {
-    const m = { faceCount: 1, faceSize: 0.4, faceAngle: -3, brightness: 120, colorCast: 2.5, sharpness: 80, filterSuspicion: 0.1 };
+    const m = {
+      faceCount: 1,
+      faceSize: 0.4,
+      faceAngle: -3,
+      brightnessDark: 0.02,
+      brightnessBright: 0,
+      colorCast: -2.5,
+      sharpness: 80,
+      filterSuspicion: 0.1,
+    };
     expect(validateQualityMeasurements(m)).toEqual({ ok: true, measurements: m });
   });
   it("측정 못 한 값은 빠져도 통과 (빈 객체 포함)", () => {
@@ -16,7 +25,7 @@ describe("validateQualityMeasurements — 통과", () => {
     expect(validateQualityMeasurements({})).toEqual({ ok: true, measurements: {} });
   });
   it("돌려주는 값은 새 객체", () => {
-    const m = { brightness: 1 };
+    const m = { brightnessDark: 1 };
     const r = validateQualityMeasurements(m);
     if (!r.ok) throw new Error("unexpected");
     expect(r.measurements).not.toBe(m);
@@ -29,8 +38,18 @@ describe("validateQualityMeasurements — 거부", () => {
   });
   it("숫자가 아니거나 NaN·Infinity·null 이면 거부", () => {
     for (const bad of ["1", NaN, Infinity, -Infinity, null, true, [1]]) {
-      expect(errorsOf({ brightness: bad })).toEqual(["brightness: 숫자여야 해요"]);
+      expect(errorsOf({ sharpness: bad })).toEqual(["sharpness: 숫자여야 해요"]);
     }
+  });
+  it("밝기 두 숫자는 0~1 비율만 (M3-1b-Q2)", () => {
+    for (const bad of [-0.01, 1.01]) {
+      expect(errorsOf({ brightnessDark: bad })).toEqual(["brightnessDark: 0~1 비율이어야 해요"]);
+      expect(errorsOf({ brightnessBright: bad })).toEqual(["brightnessBright: 0~1 비율이어야 해요"]);
+    }
+    expect(errorsOf({ brightnessDark: 0, brightnessBright: 1 })).toEqual([]);
+  });
+  it("예전 밝기 측정값 이름(brightness)은 더 이상 받지 않는다", () => {
+    expect(errorsOf({ brightness: 0.5 })).toEqual(["brightness: 허용되지 않은 필드예요"]);
   });
   it("faceCount 는 0 이상 정수만", () => {
     for (const bad of [-1, 1.5]) expect(errorsOf({ faceCount: bad })).toEqual(["faceCount: 0 이상 정수여야 해요"]);

@@ -2,10 +2,11 @@
 import type { QualityConfigDraft } from "../quality-config";
 
 export const TEST_QUALITY_CONFIG: QualityConfigDraft = {
-  face_size: { dependsOnFace: true, fail: { min: 10, max: 90 }, warn: { min: "off", max: "off" } },
-  face_angle: { dependsOnFace: true, fail: { min: -20, max: 20 }, warn: { min: "off", max: "off" } },
-  brightness: { dependsOnFace: false, fail: { min: 40, max: 220 }, warn: { min: "off", max: "off" } },
-  color_cast: { dependsOnFace: false, fail: { min: "off", max: 30 }, warn: { min: "off", max: 15 } },
-  sharpness: { dependsOnFace: false, fail: { min: 50, max: "off" }, warn: { min: "off", max: "off" } },
+  face_size: { dependsOnFace: true, onUnmeasured: "fail", fail: { min: 10, max: 90 }, warn: { min: "off", max: "off" } },
+  face_angle: { dependsOnFace: true, onUnmeasured: "fail", fail: { min: -20, max: 20 }, warn: { min: "off", max: "off" } },
+  brightness_dark: { dependsOnFace: true, onUnmeasured: "fail", fail: { max: 0.2 }, warn: { max: "off" } },
+  brightness_bright: { dependsOnFace: true, onUnmeasured: "fail", fail: { max: 0.1 }, warn: { max: "off" } },
+  color_cast: { dependsOnFace: true, onUnmeasured: "skip", fail: { min: -30, max: 30 }, warn: { min: -15, max: 15 } },
+  sharpness: { dependsOnFace: true, onUnmeasured: "fail", fail: { min: 50, max: "off" }, warn: { min: "off", max: "off" } },
   filter_suspicion: { dependsOnFace: false, warn: { min: "off", max: 0.5 } },
 };
