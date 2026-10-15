@@ -1,6 +1,6 @@
 // 개발용 확인 화면 문구 (next dev 에서만 보임, 배포에 포함되지 않음 — 결정 로그 M3-D10). G-6: 문구는 설정 파일에서 관리.
 export const DEV_COPY = {
-  title: "개발용: 얼굴 영역 추출 확인",
+  title: "개발용: 얼굴 영역 추출·품질 측정값 확인",
   notice: "이 화면은 개발 서버에서만 보여요. 배포본에는 포함되지 않아요. 사진은 이 브라우저 안에서만 처리돼요.",
   csp: {
     label: "보안 설정(CSP)이 차단한 요청 수",
@@ -29,5 +29,10 @@ export const DEV_COPY = {
     sample: "ColorSample",
     noSample: "샘플 없음 (얼굴이 정확히 1명이 아니거나 피부를 뽑지 못했어요)",
     regions: { skin: "피부", hair: "머리카락", iris: "눈동자" },
+    /** 측정값에 없을 때 보여줄 설명 (판정에서는 건너뜀 또는 실패) */
+    unmeasured: [
+      ["colorCast", "색 편향: 기준 픽셀(얼굴 밖의 밝은 무채색)이 부족해 재지 못했어요 → 판정에서 건너뜀"],
+      ["filterSuspicion", "보정·필터 의심: 측정 방법이 아직 없어 재지 않아요 → 판정에서 건너뜀"],
+    ] as const,
   },
 } as const;

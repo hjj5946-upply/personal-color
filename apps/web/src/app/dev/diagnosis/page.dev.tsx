@@ -1,5 +1,5 @@
 "use client";
-// 개발용 확인 화면 (M3-1a). next dev 에서만 페이지가 된다 (next.config pageExtensions, 결정 로그 M3-D10).
+// 개발용 확인 화면 (M3-1a, M3-1b 품질 측정값·축소 상한 후보). next dev 에서만 페이지가 된다 (next.config pageExtensions, 결정 로그 M3-D10).
 // 사진은 이 브라우저 안에서만 처리하고, 결과(색 값·숫자)만 화면에 보여준다. 콘솔에 사진·좌표를 남기지 않는다(S-8).
 import { useEffect, useRef, useState } from "react";
 import type { Rgb } from "@personal-color/core";
@@ -31,7 +31,8 @@ function useCspViolations(): Violation[] {
   return list;
 }
 
-const SIDES = [0, 2048, 1024, 512] as const;
+/** 축소 상한 후보 (M3-1b 실측). 0 = 원본 크기 */
+const SIDES = [0, 2048, 1600, 1280, 1024, 768, 512] as const;
 const hex = ({ r, g, b }: Rgb) =>
   `#${[r, g, b].map((v) => Math.round(v).toString(16).padStart(2, "0")).join("")}`.toUpperCase();
 
@@ -126,11 +127,16 @@ export default function DevDiagnosisPage() {
       {result && (
         <section className="card color-stage">
           <h2>{T.result.timings}</h2>
-          <pre>{JSON.stringify(roundAll(result.timings), null, 1)}</pre>
+          <pre data-testid="timings">{JSON.stringify(roundAll(result.timings), null, 1)}</pre>
           <h2>{T.result.size}</h2>
-          <pre>{JSON.stringify(result.size)}</pre>
+          <pre data-testid="size">{JSON.stringify(result.size)}</pre>
           <h2>{T.result.measurements}</h2>
           <pre data-testid="measurements">{JSON.stringify(roundAll(result.measurements), null, 1)}</pre>
+          <ul>
+            {T.result.unmeasured.map(([key, label]) =>
+              key in result.measurements ? null : <li key={key}>{label}</li>,
+            )}
+          </ul>
           <h2>{T.result.sample}</h2>
           {result.sample ? (
             (["skin", "hair", "iris"] as const).map((k) => (
@@ -155,5 +161,6 @@ export default function DevDiagnosisPage() {
 }
 
 function roundAll<T extends object>(o: T): Record<string, number> {
-  return Object.fromEntries(Object.entries(o).map(([k, v]) => [k, Math.round((v as number) * 1000) / 1000]));
+  // 비율(0~1) 측정값이 작아도 보이도록 소수 다섯째 자리까지
+  return Object.fromEntries(Object.entries(o).map(([k, v]) => [k, Math.round((v as number) * 1e5) / 1e5]));
 }
