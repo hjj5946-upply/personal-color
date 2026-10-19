@@ -7,7 +7,7 @@ import {
 } from "@personal-color/core";
 import { Disposables } from "./disposables";
 import { extractFace } from "./face-regions";
-import { loadNormalizedImage } from "./image";
+import { DEFAULT_MAX_LONG_SIDE, loadNormalizedImage } from "./image";
 import { loadFaceLandmarker } from "./landmarker";
 
 export interface ExtractionResult {
@@ -25,6 +25,9 @@ export class ExtractionCancelled extends Error {
   override name = "ExtractionCancelled";
 }
 
+/**
+ * @param opts.maxLongSide 긴 변 상한(px). 생략하면 `DEFAULT_MAX_LONG_SIDE`(1280, PC 기준 잠정값). 0 이면 원본 크기(개발용 비교).
+ */
 export async function extractFromPhoto(
   file: Blob,
   opts: { maxLongSide?: number; signal?: AbortSignal } = {},
@@ -39,7 +42,7 @@ export async function extractFromPhoto(
     const landmarker = await loadFaceLandmarker();
     const t1 = performance.now();
     checkCancel();
-    const img = await loadNormalizedImage(file, bag, opts.maxLongSide);
+    const img = await loadNormalizedImage(file, bag, opts.maxLongSide ?? DEFAULT_MAX_LONG_SIDE);
     const t2 = performance.now();
     checkCancel();
     const result = landmarker.detect(img.canvas);

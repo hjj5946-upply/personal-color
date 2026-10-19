@@ -62,7 +62,7 @@ export default function DevDiagnosisPage() {
     setResult(null);
     setStatus(T.status.running);
     try {
-      const r = await extractFromPhoto(file, { maxLongSide: maxSide || undefined, signal: ac.signal });
+      const r = await extractFromPhoto(file, { maxLongSide: maxSide, signal: ac.signal });
       setResult(r);
       setStatus(T.status.done);
     } catch (e) {

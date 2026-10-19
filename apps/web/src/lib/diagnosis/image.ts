@@ -16,7 +16,13 @@ export class ImageDecodeError extends Error {
 }
 
 /**
- * @param maxLongSide 긴 변 상한(px). 없으면 축소하지 않음. 실제 상한은 M3-1b 실측 후 결정 (M3-D6).
+ * 분석 전 입력 이미지 긴 변 상한(px). **PC 기준 잠정값** — M3-1b 실측으로 정함(결정 로그 M3-1b-상한확정).
+ * M3-3 샘플과 M4 휴대폰 실기기에서 다시 확인한다.
+ */
+export const DEFAULT_MAX_LONG_SIDE = 1280;
+
+/**
+ * @param maxLongSide 긴 변 상한(px). 없거나 0 이면 축소하지 않음. 기본 상한은 호출하는 쪽(`extractFromPhoto`)에서 정한다.
  */
 export async function loadNormalizedImage(
   file: Blob,
