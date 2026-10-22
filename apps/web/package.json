@@ -12,7 +12,7 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@mediapipe/tasks-vision": "1.1.0",
+    "@mediapipe/tasks-vision": "1.1.1",
     "@personal-color/core": "*",
     "@personal-color/design-tokens": "*",
     "next": "^16.3.0",
