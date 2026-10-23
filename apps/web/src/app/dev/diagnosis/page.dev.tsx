@@ -1,8 +1,17 @@
 "use client";
-// 개발용 확인 화면 (M3-1a, M3-1b 품질 측정값·축소 상한 후보). next dev 에서만 페이지가 된다 (next.config pageExtensions, 결정 로그 M3-D10).
+// 개발용 확인 화면 (M3-1a, M3-1b 품질 측정값·축소 상한 후보, M3-2 조명 보정·특징값·판정 미리보기). next dev 에서만 페이지가 된다 (next.config pageExtensions, 결정 로그 M3-D10).
 // 사진은 이 브라우저 안에서만 처리하고, 결과(색 값·숫자)만 화면에 보여준다. 콘솔에 사진·좌표를 남기지 않는다(S-8).
 import { useEffect, useRef, useState } from "react";
-import type { Rgb } from "@personal-color/core";
+import {
+  computeFeatures,
+  correctSample,
+  grayWorldGains,
+  judgeTone,
+  skinSpread,
+  type ColorAxes,
+  type ColorSample,
+  type Rgb,
+} from "@personal-color/core";
 import { DEV_COPY as T } from "@/config/dev-copy";
 import { ExtractionCancelled, extractFromPhoto, type ExtractionResult } from "@/lib/diagnosis/extract";
 import { loadFaceLandmarker } from "@/lib/diagnosis/landmarker";
@@ -156,9 +165,69 @@ export default function DevDiagnosisPage() {
           <pre data-testid="sample">{JSON.stringify(result.sample)}</pre>
         </section>
       )}
+
+      {result?.sample && <PipelinePreview sample={result.sample} result={result} />}
     </main>
   );
 }
+
+/** 두 보정 방식의 특징값을 나란히. 판정은 실제 설정(경계값 [미정])으로 시도하므로 지금은 "미설정"이 정상 */
+function PipelinePreview({ sample, result }: { sample: ColorSample; result: ExtractionResult }) {
+  const P = T.result.pipeline;
+  const gains = result.lighting ? grayWorldGains(result.lighting) : undefined;
+  const columns: [string, ColorSample | null][] = [
+    [P.none, sample],
+    [P.grayWorld, gains ? correctSample(sample, gains) : null],
+  ];
+  const spread = skinSpread(sample);
+  return (
+    <section className="card color-stage" data-testid="pipeline">
+      <h2>{P.title}</h2>
+      <h3>{P.reference}</h3>
+      {result.lighting ? (
+        <pre data-testid="lighting-reference">
+          {JSON.stringify({ ...roundAll(result.lighting.linearMean), areaRatio: round5(result.lighting.areaRatio) })}
+        </pre>
+      ) : (
+        <p>{P.noReference}</p>
+      )}
+      <p>
+        {P.gains}: {gains ? JSON.stringify(roundAll(gains)) : P.noGains}
+      </p>
+      {columns.map(([label, s]) => (
+        <div key={label}>
+          <h3>{label}</h3>
+          {s ? <AxesAndJudge axes={computeFeatures(s).axes} /> : <p>{P.noGains}</p>}
+        </div>
+      ))}
+      <p data-testid="skin-spread">
+        {P.spread}: {spread === null ? P.spreadNone : round5(spread)}
+      </p>
+    </section>
+  );
+}
+
+function AxesAndJudge({ axes }: { axes: ColorAxes }) {
+  const P = T.result.pipeline;
+  let judge: string;
+  try {
+    const j = judgeTone(axes);
+    judge = `${j.tone16} / ${j.tone16Second}`;
+  } catch (e) {
+    judge = `${P.notSet}: ${(e as Error).message}`;
+  }
+  return (
+    <>
+      <p>{P.axes}</p>
+      <pre>{JSON.stringify({ ...roundAll({ ...axes, contrast: axes.contrast ?? 0 }), contrast: axes.contrast && round5(axes.contrast) })}</pre>
+      <p>
+        {P.judge}: {judge}
+      </p>
+    </>
+  );
+}
+
+const round5 = (v: number) => Math.round(v * 1e5) / 1e5;
 
 function roundAll<T extends object>(o: T): Record<string, number> {
   // 비율(0~1) 측정값이 작아도 보이도록 소수 다섯째 자리까지

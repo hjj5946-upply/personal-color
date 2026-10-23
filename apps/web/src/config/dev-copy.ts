@@ -29,6 +29,21 @@ export const DEV_COPY = {
     sample: "ColorSample",
     noSample: "샘플 없음 (얼굴이 정확히 1명이 아니거나 피부를 뽑지 못했어요)",
     regions: { skin: "피부", hair: "머리카락", iris: "눈동자" },
+    /** M3-2: 조명 보정·특징값·판정 미리보기 */
+    pipeline: {
+      title: "조명 보정과 특징값 (M3-2)",
+      reference: "조명 기준 통계 (얼굴·목 밖, 선형 평균·영역 비율)",
+      noReference: "기준 통계를 재지 못했어요 → 회색 세계 가정이면 \"보정 안 함\"으로 대체돼요 (lighting_fallback)",
+      none: "보정 안 함",
+      grayWorld: "회색 세계 가정 (참고값: 한도·최소 영역 검사 전, 설정 [미정])",
+      gains: "배율 (선형)",
+      noGains: "배율을 계산할 수 없어요",
+      axes: "특징값 (웜/쿨 h°, 명도 L*, 채도 C*, 대비 |ΔL*|)",
+      spread: "피부 영역 간 최대 ΔE2000 (신뢰도 ⑤ 영역 간 일관성)",
+      spreadNone: "피부 영역이 1개라 확인할 수 없어요",
+      judge: "16톤 판정",
+      notSet: "미설정",
+    },
     /** 측정값에 없을 때 보여줄 설명 (판정에서는 건너뜀 또는 실패) */
     unmeasured: [
       ["colorCast", "색 편향: 기준 픽셀(얼굴 밖의 밝은 무채색)이 부족해 재지 못했어요 → 판정에서 건너뜀"],
