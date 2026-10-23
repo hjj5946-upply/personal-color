@@ -3,6 +3,7 @@
 import {
   validateQualityMeasurements,
   type ColorSample,
+  type LightingReference,
   type QualityMeasurements,
 } from "@personal-color/core";
 import { Disposables } from "./disposables";
@@ -15,6 +16,8 @@ export interface ExtractionResult {
   sample: ColorSample | null;
   /** faceCount·faceSize·faceAngle(M3-1a), 밝기 두 비율·색 편향·선명도(M3-1b). 보정·필터 의심은 재지 않음(건너뜀) */
   measurements: QualityMeasurements;
+  /** 조명 보정(회색 세계 가정) 기준 통계 (M3-2). 얼굴이 1명이 아니거나 못 재면 undefined */
+  lighting: LightingReference | undefined;
   /** 개발용 확인 화면 표시용 (ms). extract 에는 영역 추출과 품질 측정이 함께 들어간다 */
   timings: { modelLoad: number; decode: number; detect: number; extract: number };
   /** 분석에 쓴 크기 */
@@ -51,12 +54,14 @@ export async function extractFromPhoto(
     const faceCount = result.faceLandmarks.length;
     const measurements: QualityMeasurements = { faceCount };
     let sample: ColorSample | null = null;
+    let lighting: LightingReference | undefined;
     if (faceCount === 1) {
       const face = extractFace(img.pixels, result.faceLandmarks[0] ?? [], result.facialTransformationMatrixes?.[0]);
       sample = face.sample;
       measurements.faceSize = face.faceSize;
       if (face.faceAngle !== undefined) measurements.faceAngle = face.faceAngle;
       Object.assign(measurements, face.quality);
+      lighting = face.lighting;
     }
     const t4 = performance.now();
 
@@ -65,6 +70,7 @@ export async function extractFromPhoto(
     return {
       sample,
       measurements: checked.measurements,
+      lighting,
       timings: { modelLoad: t1 - t0, decode: t2 - t1, detect: t3 - t2, extract: t4 - t3 },
       size: {
         width: img.pixels.width,

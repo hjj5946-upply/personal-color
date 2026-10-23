@@ -1,11 +1,20 @@
 import { describe, expect, it } from "vitest";
-import { evaluateQuality, rgbToLab, validateQualityMeasurements, type QualityConfigDraft } from "@personal-color/core";
+import {
+  applyLighting,
+  evaluateQuality,
+  labToLch,
+  rgbToLab,
+  srgbToLinear,
+  validateQualityMeasurements,
+  type QualityConfigDraft,
+} from "@personal-color/core";
 import type { PixelBuffer } from "./pixels";
 import {
   MEASURE,
   measureBrightness,
   measureColorCast,
   measureImageQuality,
+  measureLightingReference,
   measureSharpness,
   pixelLab,
   resizeGray,
@@ -244,5 +253,63 @@ describe("결정성과 O-2", () => {
       status: "skipped",
       reason: "skipped_unmeasured",
     });
+  });
+});
+
+describe("조명 보정 기준 통계 (M3-2-Q4, 완료 기준 4)", () => {
+  // 회색 배경 + 얼굴(피부색) — 얼굴·목 밖만 세야 한다
+  const scene = (bg: Rgb3, skin: Rgb3 = [205, 160, 135]) => make(W, H, (x, y) => (inRect(x, y, FACE) ? skin : bg));
+  const lin = (c: number) => srgbToLinear(c);
+
+  it("얼굴·목 밖 픽셀의 채널별 선형값 평균과 영역 비율", () => {
+    const ref = measureLightingReference(scene([180, 170, 140]), FACE);
+    expect(ref?.linearMean.r).toBeCloseTo(lin(180), 12);
+    expect(ref?.linearMean.g).toBeCloseTo(lin(170), 12);
+    expect(ref?.linearMean.b).toBeCloseTo(lin(140), 12);
+    // 제외 영역: 얼굴 60×80 을 좌우·위 25%, 아래 60% 넓힘 → x 55~145, y 30~178 → 90×148
+    expect(ref?.areaRatio).toBeCloseTo((W * H - 90 * 148) / (W * H), 12);
+  });
+  it("피부색이 바뀌어도 값이 같다 (얼굴은 세지 않음)", () => {
+    expect(measureLightingReference(scene([150, 150, 150], [90, 60, 50]), FACE)).toEqual(
+      measureLightingReference(scene([150, 150, 150], [230, 190, 170]), FACE),
+    );
+  });
+  it("색 편향과 같은 영역을 쓴다: 제외 영역 경계 바로 안쪽 픽셀은 둘 다 세지 않는다", () => {
+    // 제외 영역 안(목 쪽, y 170)에만 강한 노란 띠 → 두 측정 모두 영향 없음
+    const base = scene([200, 200, 200]);
+    const banded = make(W, H, (x, y) => (inRect(x, y, FACE) ? [205, 160, 135] : y >= 165 && y < 178 && x >= 60 && x < 140 ? [240, 200, 60] : [200, 200, 200]));
+    expect(measureLightingReference(banded, FACE)).toEqual(measureLightingReference(base, FACE));
+    expect(measureColorCast(banded, FACE)).toBe(measureColorCast(base, FACE));
+  });
+  it("잘린 픽셀(한 채널이라도 250 이상)은 뺀다", () => {
+    const half = make(W, H, (x, y) => (inRect(x, y, FACE) ? [205, 160, 135] : x < 100 ? [255, 255, 255] : [100, 120, 140]));
+    const ref = measureLightingReference(half, FACE);
+    expect(ref?.linearMean.r).toBeCloseTo(lin(100), 12);
+    expect(ref?.linearMean.b).toBeCloseTo(lin(140), 12);
+  });
+  it("쓸 픽셀이 없으면 undefined (얼굴이 화면을 꽉 채움 / 전부 잘림)", () => {
+    expect(measureLightingReference(scene([128, 128, 128]), { x0: 10, y0: 30, x1: 190, y1: 170 })).toBeUndefined();
+    expect(measureLightingReference(scene([255, 255, 255]), FACE)).toBeUndefined();
+  });
+  it("노란 조명 장면 → core 회색 세계 가정으로 피부 색상각이 중립 조명 때와 같아진다", () => {
+    const light = [1.2, 1.0, 0.75] as const;
+    const lit = (c: Rgb3): Rgb3 =>
+      c.map((v, i) => {
+        const x = Math.min(1, lin(v) * (light[i] as number));
+        return 255 * (x <= 0.0031308 ? 12.92 * x : 1.055 * Math.pow(x, 1 / 2.4) - 0.055);
+      }) as unknown as Rgb3;
+    const skin: Rgb3 = [205, 160, 135];
+    // 지어낸 픽셀은 0~255 정수로 저장되므로 반올림 오차가 생긴다
+    const buf = scene(lit([150, 150, 150]).map(Math.round) as unknown as Rgb3, lit(skin).map(Math.round) as unknown as Rgb3);
+    const ref = measureLightingReference(buf, FACE);
+    const litSkin = lit(skin).map(Math.round);
+    const r = applyLighting(
+      { skin: [{ r: litSkin[0] as number, g: litSkin[1] as number, b: litSkin[2] as number }] },
+      ref,
+      { mode: "gray_world", grayWorld: { minAreaRatio: 0.1, maxGain: 2 } },
+    );
+    const h = (c: { r: number; g: number; b: number }) => labToLch(rgbToLab(c)).h;
+    expect(r.applied).toBe("gray_world");
+    expect(h(r.sample.skin[0] as { r: number; g: number; b: number })).toBeCloseTo(h({ r: 205, g: 160, b: 135 }), 0);
   });
 });

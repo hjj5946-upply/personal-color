@@ -1,9 +1,9 @@
 // MediaPipe Face Landmarker(478점) 결과로 피부·머리카락·눈동자 영역을 잡고 ColorSample 과 얼굴 측정값을 만든다.
 // 순수 함수: 브라우저 API·MediaPipe 를 직접 쓰지 않는다 (테스트는 가짜 픽셀·가짜 랜드마크로).
 // O-2: 랜드마크 좌표는 이 함수 안에서만 쓰고 결과에 넣지 않는다. 결과는 색 값과 숫자 측정값뿐.
-import { validateColorSample, type ColorSample, type Rgb } from "@personal-color/core";
+import { validateColorSample, type ColorSample, type LightingReference, type Rgb } from "@personal-color/core";
 import { regionMedianRgb, type PixelBuffer, type Point } from "./pixels";
-import { measureImageQuality, type PixelRect } from "./quality-measure";
+import { measureImageQuality, measureLightingReference, type PixelRect } from "./quality-measure";
 
 /** MediaPipe 정규화 랜드마크 (x·y 는 0~1, 이미지 너비·높이 기준) */
 export interface NormalizedLandmark {
@@ -59,6 +59,8 @@ export interface FaceExtraction {
   faceAngle: number | undefined;
   /** 밝기 두 비율·색 편향·선명도 (M3-1b). 못 잰 값은 빠진다 */
   quality: ReturnType<typeof measureImageQuality>;
+  /** 조명 보정(회색 세계 가정)의 기준 통계 (M3-2). 못 재면 undefined */
+  lighting: LightingReference | undefined;
 }
 
 const toPx = (l: NormalizedLandmark | undefined, buf: PixelBuffer): Point | null =>
@@ -133,12 +135,13 @@ export function extractFace(
   const faceAngle = matrix ? rotationAngleDeg(matrix) : undefined;
   const box = faceBoxPx(landmarks, buf);
   const quality = box ? measureImageQuality(buf, box) : {};
+  const lighting = box ? measureLightingReference(buf, box) : undefined;
 
   const eyeA = P(LANDMARK.eyeOuterA);
   const eyeB = P(LANDMARK.eyeOuterB);
   const top = P(LANDMARK.faceTop);
   const chin = P(LANDMARK.chin);
-  if (!eyeA || !eyeB || !top || !chin) return { sample: null, faceSize, faceAngle, quality };
+  if (!eyeA || !eyeB || !top || !chin) return { sample: null, faceSize, faceAngle, quality, lighting };
 
   const eyeSpan = dist(eyeA, eyeB);
   const faceHeight = dist(top, chin);
@@ -175,10 +178,10 @@ export function extractFace(
     [lift(P(LANDMARK.hairlineB)), hairR],
   ]);
 
-  if (skin.length === 0) return { sample: null, faceSize, faceAngle, quality };
+  if (skin.length === 0) return { sample: null, faceSize, faceAngle, quality, lighting };
   const candidate: ColorSample = { skin };
   if (hair.length) candidate.hair = hair;
   if (iris.length) candidate.iris = iris;
   const checked = validateColorSample(candidate);
-  return { sample: checked.ok ? checked.sample : null, faceSize, faceAngle, quality };
+  return { sample: checked.ok ? checked.sample : null, faceSize, faceAngle, quality, lighting };
 }

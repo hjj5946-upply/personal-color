@@ -15,10 +15,17 @@ export function rgbToHex({ r, g, b }: Rgb): string {
   return `#${h(r)}${h(g)}${h(b)}`.toUpperCase();
 }
 
-const srgbToLinear = (c: number) => {
+/** sRGB 값(0~255, 감마 적용) → 선형값(0~1) */
+export function srgbToLinear(c: number): number {
   const v = c / 255;
   return v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
-};
+}
+
+/** 선형값(0~1) → sRGB 값(0~255, 감마 적용). 반올림하지 않는다. 범위 밖은 0~1로 자른다. */
+export function linearToSrgb(v: number): number {
+  const x = clamp(v, 0, 1);
+  return clamp(255 * (x <= 0.0031308 ? 12.92 * x : 1.055 * Math.pow(x, 1 / 2.4) - 0.055), 0, 255);
+}
 
 /** sRGB → CIE Lab (D65) */
 export function rgbToLab({ r, g, b }: Rgb): Lab {

@@ -96,7 +96,10 @@ describe("extractFace — 가짜 얼굴", () => {
   it("O-2: 결과에는 색 값과 숫자만, 좌표는 없다", () => {
     const { buf, landmarks } = makeFace();
     const r = extractFace(buf, landmarks, identity);
-    expect(Object.keys(r).sort()).toEqual(["faceAngle", "faceSize", "quality", "sample"]);
+    expect(Object.keys(r).sort()).toEqual(["faceAngle", "faceSize", "lighting", "quality", "sample"]);
+    // 조명 보정 기준 통계도 숫자 4개뿐 (M3-2)
+    expect(Object.keys(r.lighting ?? {}).sort()).toEqual(["areaRatio", "linearMean"]);
+    expect(Object.keys(r.lighting?.linearMean ?? {}).sort()).toEqual(["b", "g", "r"]);
     // 품질 측정값도 숫자뿐 (얼굴 상자·좌표 없음, M3-1b). 회색 배경이라 색 편향 기준 픽셀이 없어 colorCast 는 빠짐
     expect(Object.keys(r.quality).sort()).toEqual(["brightnessBright", "brightnessDark", "sharpness"]);
     expect(Object.values(r.quality).every((v) => typeof v === "number")).toBe(true);

@@ -32,8 +32,13 @@ export const QUALITY_REASON_CODES = [
   "filter_suspicion_high",
   "skipped_no_face",
   "skipped_unmeasured",
+  // M3-2 추가 (결정 로그 M3-2-Q5): 품질 검사가 아니라 조명 보정(③)에서 나오는 경고
+  "lighting_fallback",
 ] as const;
 export type QualityReasonCode = (typeof QUALITY_REASON_CODES)[number];
+
+/** evaluateQuality 가 아니라 파이프라인(조명 보정 등)에서 붙이는 경고 코드 */
+export const PIPELINE_WARNING_CODES = ["lighting_fallback"] as const satisfies readonly QualityReasonCode[];
 
 export interface QualityCheckResult {
   id: QualityCheckId;

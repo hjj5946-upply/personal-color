@@ -2,7 +2,7 @@
 // 측정 방법은 [임시 정의, M3-3 재검토] — 02 "품질 측정 방법", 결정 로그 M3-1b-Q1~Q4.
 // O-2: 얼굴 상자는 이 파일 안에서만 쓰고 결과에 넣지 않는다. 결과는 숫자 측정값뿐이며 판정에만 쓴다.
 // 보정·필터 의심은 측정 방법이 정해지지 않아 재지 않는다 → 측정값에서 빠지고 판정은 "건너뜀".
-import type { QualityMeasurements } from "@personal-color/core";
+import type { LightingReference, QualityMeasurements } from "@personal-color/core";
 import type { PixelBuffer } from "./pixels";
 
 /** 픽셀 단위 사각형. x1·y1 은 포함하지 않는다 (x0 ≤ x < x1). */
@@ -88,11 +88,10 @@ export function pixelLab(r: number, g: number, b: number): [number, number, numb
 }
 
 /**
- * 색 편향 (M3-1b-Q3): 얼굴(과 목) 밖에서 밝고 무채색에 가까운 픽셀의 b* 중앙값.
- * 음수 = 파란 조명 쪽, 양수 = 노란 조명 쪽. 초록·자홍 편향(형광등 등)은 잡지 못한다.
- * 기준 픽셀이 부족하면 undefined (측정 불가 → 판정에서 건너뜀).
+ * 색 편향·조명 보정 기준 영역: 얼굴 상자를 좌우·위로 castExcludeSide, 아래로 castExcludeBelow 만큼 넓힌 영역을 **뺀** 나머지.
+ * 두 측정이 같은 영역을 쓰도록 한 곳에서 정한다 (결정 로그 M3-2-Q4).
  */
-export function measureColorCast(buf: PixelBuffer, face: PixelRect): number | undefined {
+function forEachOutsideFace(buf: PixelBuffer, face: PixelRect, visit: (r: number, g: number, b: number) => void): void {
   const w = face.x1 - face.x0;
   const h = face.y1 - face.y0;
   const ex = {
@@ -101,27 +100,57 @@ export function measureColorCast(buf: PixelBuffer, face: PixelRect): number | un
     x1: face.x1 + w * MEASURE.castExcludeSide,
     y1: face.y1 + h * MEASURE.castExcludeBelow,
   };
-  const bs: number[] = [];
-  let area = 0;
   for (let y = 0; y < buf.height; y++) {
     const rowInside = y + 0.5 >= ex.y0 && y + 0.5 < ex.y1;
     for (let x = 0; x < buf.width; x++) {
       if (rowInside && x + 0.5 >= ex.x0 && x + 0.5 < ex.x1) continue;
-      area++;
       const i = (y * buf.width + x) * 4;
-      const r = buf.data[i] as number;
-      const g = buf.data[i + 1] as number;
-      const b = buf.data[i + 2] as number;
-      if (Math.max(r, g, b) >= MEASURE.castClipLevel) continue;
-      const [L, A, B] = pixelLab(r, g, b);
-      if (L < MEASURE.castMinL || Math.hypot(A, B) > MEASURE.castMaxChroma) continue;
-      bs.push(B);
+      visit(buf.data[i] as number, buf.data[i + 1] as number, buf.data[i + 2] as number);
     }
   }
+}
+
+/**
+ * 색 편향 (M3-1b-Q3): 얼굴(과 목) 밖에서 밝고 무채색에 가까운 픽셀의 b* 중앙값.
+ * 음수 = 파란 조명 쪽, 양수 = 노란 조명 쪽. 초록·자홍 편향(형광등 등)은 잡지 못한다.
+ * 기준 픽셀이 부족하면 undefined (측정 불가 → 판정에서 건너뜀).
+ */
+export function measureColorCast(buf: PixelBuffer, face: PixelRect): number | undefined {
+  const bs: number[] = [];
+  let area = 0;
+  forEachOutsideFace(buf, face, (r, g, b) => {
+    area++;
+    if (Math.max(r, g, b) >= MEASURE.castClipLevel) return;
+    const [L, A, B] = pixelLab(r, g, b);
+    if (L < MEASURE.castMinL || Math.hypot(A, B) > MEASURE.castMaxChroma) return;
+    bs.push(B);
+  });
   if (area === 0 || bs.length < Math.max(1, area * MEASURE.castMinRatio)) return undefined;
   bs.sort((p, q) => p - q);
   const mid = bs.length >> 1;
   return bs.length % 2 ? (bs[mid] as number) : ((bs[mid - 1] as number) + (bs[mid] as number)) / 2;
+}
+
+/**
+ * 조명 보정(회색 세계 가정)의 기준 통계 (M3-2-Q4): 색 편향과 **같은 영역**(얼굴·목 밖)에서,
+ * 한 채널이라도 castClipLevel 이상인 픽셀(색 정보가 잘림)을 뺀 **모든 픽셀**의 채널별 선형값 평균과
+ * 쓴 픽셀 수 ÷ 전체 픽셀 수. 쓸 픽셀이 없으면 undefined (core 에서 "보정 안 함"으로 대체).
+ * 결과는 숫자 4개뿐이다 (좌표·이미지 없음, O-2). 영역이 충분히 큰지는 core 가 설정값으로 판단한다.
+ */
+export function measureLightingReference(buf: PixelBuffer, face: PixelRect): LightingReference | undefined {
+  let n = 0;
+  let sr = 0;
+  let sg = 0;
+  let sb = 0;
+  forEachOutsideFace(buf, face, (r, g, b) => {
+    if (Math.max(r, g, b) >= MEASURE.castClipLevel) return;
+    n++;
+    sr += LINEAR[r] as number;
+    sg += LINEAR[g] as number;
+    sb += LINEAR[b] as number;
+  });
+  if (n === 0) return undefined;
+  return { linearMean: { r: sr / n, g: sg / n, b: sb / n }, areaRatio: n / (buf.width * buf.height) };
 }
 
 /** 회색조(0~255, Rec.601 가중치) 사각형 영역 */

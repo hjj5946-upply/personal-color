@@ -2,7 +2,13 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { QualityConfigNotSetError, type QualityConfigDraft } from "./quality-config";
 import type { QualityMeasurements } from "./quality-measurements";
-import { evaluateQuality, QUALITY_REASON_CODES, type QualityCheckId, type QualityResult } from "./quality";
+import {
+  evaluateQuality,
+  PIPELINE_WARNING_CODES,
+  QUALITY_REASON_CODES,
+  type QualityCheckId,
+  type QualityResult,
+} from "./quality";
 import { TEST_QUALITY_CONFIG as T } from "./testing/quality-test-config";
 
 // 테스트용 기준(T): face_size 10~90, face_angle -20~20, 밝기 어두운 쪽 비율 실패 >0.2 · 밝은 쪽 비율 실패 >0.1,
@@ -257,8 +263,9 @@ describe("qualityFlags 와 O-2", () => {
       }
     }
     for (const r of seen) expect(QUALITY_REASON_CODES as readonly string[]).toContain(r);
-    // 목록의 모든 코드가 실제로 나올 수 있다 (안 쓰는 코드 없음)
-    expect([...seen].sort()).toEqual([...QUALITY_REASON_CODES].sort());
+    // 목록의 모든 코드가 실제로 나올 수 있다 (안 쓰는 코드 없음). 파이프라인 경고 코드는 profile.test 에서 확인
+    const pipeline: readonly string[] = PIPELINE_WARNING_CODES;
+    expect([...seen].sort()).toEqual(QUALITY_REASON_CODES.filter((c) => !pipeline.includes(c)).sort());
   });
 });
 
