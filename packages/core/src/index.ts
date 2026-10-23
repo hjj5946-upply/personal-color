@@ -9,3 +9,4 @@ export * from "./quality";
 export * from "./lighting";
 export * from "./tone";
 export * from "./confidence";
+export * from "./profile";
