@@ -65,23 +65,26 @@ describe("톤 ID (결정 로그 M3-2-Q1, 완료 기준 14)", () => {
   });
 });
 
+const SCALE = { warmCool: 1, lightness: 1, chroma: 1 };
+
 describe("16톤 경계값 (미설정 상태 보장)", () => {
   it("실제 경계값은 아직 비어 있다 [미정]", () => {
-    expect(TONE_THRESHOLDS).toEqual({ warmCoolSplit: null, lightnessCuts: null, chromaSplit: null });
+    expect(TONE_THRESHOLDS).toEqual({ warmCoolSplit: null, lightnessCuts: null, chromaSplit: null, secondScale: null });
   });
   it("비어 있는 채로 쓰려고 하면 '미설정' 오류", () => {
     expect(() => requireToneThresholds()).toThrow(ToneConfigNotSetError);
-    expect(() => requireToneThresholds()).toThrow(/미설정: warmCoolSplit, lightnessCuts, chromaSplit/);
+    expect(() => requireToneThresholds()).toThrow(/미설정: warmCoolSplit, lightnessCuts, chromaSplit, secondScale/);
   });
   it("하나만 비어도 오류 (테스트용 값)", () => {
-    expect(() => requireToneThresholds({ warmCoolSplit: 1, lightnessCuts: [1, 2, 3], chromaSplit: null })).toThrow(
-      /미설정: chromaSplit/,
-    );
+    expect(() =>
+      requireToneThresholds({ warmCoolSplit: 1, lightnessCuts: [1, 2, 3], chromaSplit: null, secondScale: SCALE }),
+    ).toThrow(/미설정: chromaSplit/);
   });
   it("모두 채워지면 통과, 명도 경계는 오름차순이어야 함 (테스트용 값)", () => {
-    const t = { warmCoolSplit: 1, lightnessCuts: [1, 2, 3] as const, chromaSplit: 1 };
+    const t = { warmCoolSplit: 1, lightnessCuts: [1, 2, 3] as const, chromaSplit: 1, secondScale: SCALE };
     expect(requireToneThresholds(t)).toEqual(t);
     expect(() => requireToneThresholds({ ...t, lightnessCuts: [3, 2, 1] })).toThrow(ToneConfigNotSetError);
+    expect(() => requireToneThresholds({ ...t, secondScale: { ...SCALE, chroma: 0 } })).toThrow(/0보다 커야/);
   });
 });
 

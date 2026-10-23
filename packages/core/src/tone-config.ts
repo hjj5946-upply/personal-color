@@ -76,16 +76,22 @@ export interface ToneThresholds {
   lightnessCuts: readonly [number, number, number];
   /** chroma(피부 C*) 이 값 이상이면 선명 */
   chromaSplit: number;
+  /**
+   * 2순위 비교용 축별 척도 (M3-2-Q6). 경계까지 거리를 이 값으로 나눠 단위가 다른 축(°, L*, C*)을 비교한다.
+   * 모두 0보다 커야 한다. 대비(contrast)는 판정에 쓰지 않으므로 없다 (회의-대비).
+   */
+  secondScale: { readonly warmCool: number; readonly lightness: number; readonly chroma: number };
 }
 
 /** 아직 정하지 않은 상태를 포함한 경계값 */
 export type ToneThresholdsDraft = { readonly [K in keyof ToneThresholds]: ToneThresholds[K] | null };
 
-/** 경계값 자리표시자. 실제 수치는 M3에서 샘플 사진으로 1차 설정하고 지인 피드백으로 튜닝 [미정]. 추정으로 채우지 않는다. */
+/** 경계값·2순위 척도 자리표시자. 실제 수치는 M3에서 샘플 사진으로 1차 설정하고 지인 피드백으로 튜닝 [미정]. 추정으로 채우지 않는다. */
 export const TONE_THRESHOLDS: ToneThresholdsDraft = {
   warmCoolSplit: null,
   lightnessCuts: null,
   chromaSplit: null,
+  secondScale: null,
 };
 
 /** 경계값이 아직 설정되지 않았거나 잘못됐을 때 */
@@ -104,6 +110,10 @@ export function requireToneThresholds(draft: ToneThresholdsDraft = TONE_THRESHOL
   const t = draft as ToneThresholds;
   const [c1, c2, c3] = t.lightnessCuts;
   if (!(c1 < c2 && c2 < c3)) throw new ToneConfigNotSetError("lightnessCuts 는 오름차순 3개여야 해요");
+  const sc = t.secondScale;
+  if (![sc.warmCool, sc.lightness, sc.chroma].every((v) => Number.isFinite(v) && v > 0)) {
+    throw new ToneConfigNotSetError("secondScale 은 모두 0보다 커야 해요");
+  }
   return t;
 }
 
