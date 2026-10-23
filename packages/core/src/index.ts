@@ -8,3 +8,4 @@ export * from "./quality-config";
 export * from "./quality";
 export * from "./lighting";
 export * from "./tone";
+export * from "./confidence";
