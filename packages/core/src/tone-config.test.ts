@@ -1,5 +1,15 @@
 import { describe, expect, it } from "vitest";
-import { TONES_16, TONE_THRESHOLDS, ToneConfigNotSetError, getTone, requireToneThresholds, toneIdOf } from "./tone-config";
+import {
+  CONFIG_VERSION,
+  TONES_12,
+  TONES_16,
+  TONE_THRESHOLDS,
+  ToneConfigNotSetError,
+  getTone,
+  requireToneThresholds,
+  toTone12,
+  toneIdOf,
+} from "./tone-config";
 
 describe("16톤 구조", () => {
   it("정확히 16개, ID·번호 유일", () => {
@@ -72,5 +82,64 @@ describe("16톤 경계값 (미설정 상태 보장)", () => {
     const t = { warmCoolSplit: 1, lightnessCuts: [1, 2, 3] as const, chromaSplit: 1 };
     expect(requireToneThresholds(t)).toEqual(t);
     expect(() => requireToneThresholds({ ...t, lightnessCuts: [3, 2, 1] })).toThrow(ToneConfigNotSetError);
+  });
+});
+
+describe("표시 이름·4계절 (결정 로그 회의-톤이름, 완료 기준 1)", () => {
+  const SEASON_PREFIX = { 봄: "spring", 여름: "summer", 가을: "autumn", 겨울: "winter" } as const;
+  it("16톤 전부 4계절 = 이름 앞글자", () => {
+    for (const t of TONES_16) {
+      const prefix = t.nameKo.split(" ")[0] as keyof typeof SEASON_PREFIX;
+      expect(SEASON_PREFIX[prefix], t.nameKo).toBe(t.season4);
+    }
+  });
+  it("9번 = 겨울 브라이트, 14번 = 여름 소프트 (ID·축은 그대로)", () => {
+    expect(getTone("cool_light_vivid")).toMatchObject({ no: 9, nameKo: "겨울 브라이트", season4: "winter" });
+    expect(getTone("cool_mid_low_muted")).toMatchObject({ no: 14, nameKo: "여름 소프트", season4: "summer" });
+  });
+  it("configVersion 이 뼈대 값에서 올라감", () => {
+    expect(CONFIG_VERSION).not.toBe("0.0.1-skeleton");
+  });
+});
+
+describe("12톤 대응표 (결정 로그 회의-12톤, 완료 기준 2)", () => {
+  it("12톤은 12개, ID 유일, 계절마다 3개", () => {
+    expect(TONES_12).toHaveLength(12);
+    expect(new Set(TONES_12.map((t) => t.id)).size).toBe(12);
+    for (const s of ["spring", "summer", "autumn", "winter"]) {
+      expect(TONES_12.filter((t) => t.season4 === s)).toHaveLength(3);
+    }
+  });
+  it("16톤이 모두 대응되고, 16톤과 12톤의 계절이 같다", () => {
+    for (const t of TONES_16) expect(toTone12(t.id).season4, t.nameKo).toBe(t.season4);
+  });
+  it("12톤 12개가 모두 쓰인다", () => {
+    expect(new Set(TONES_16.map((t) => toTone12(t.id).id)).size).toBe(12);
+  });
+  it("대응표가 기획 회의 결정과 같다", () => {
+    expect(TONES_16.map((t) => `${t.no}:${toTone12(t.id).nameKo}`)).toEqual([
+      "1:봄 브라이트",
+      "2:봄 라이트",
+      "3:봄 트루",
+      "4:봄 트루",
+      "5:가을 트루",
+      "6:가을 뮤트",
+      "7:가을 딥",
+      "8:가을 딥",
+      "9:겨울 브라이트",
+      "10:여름 라이트",
+      "11:여름 트루",
+      "12:여름 뮤트",
+      "13:겨울 트루",
+      "14:여름 뮤트",
+      "15:겨울 딥",
+      "16:겨울 딥",
+    ]);
+  });
+  it("확신 낮음은 4번·14번뿐 (설정에만 있음)", () => {
+    expect(TONES_16.filter((t) => t.tone12LowConfidence).map((t) => t.no)).toEqual([4, 14]);
+  });
+  it("모르는 ID는 오류", () => {
+    expect(() => toTone12("summer_bright")).toThrow(/알 수 없는 16톤 ID/);
   });
 });
