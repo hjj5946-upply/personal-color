@@ -201,6 +201,16 @@ describe("보정 대체 → lighting_fallback + 신뢰도 하락 (완료 기준 
     expect(p.qualityFlags).toEqual([]);
     expect(p.confidence).toBeCloseTo(ok.confidence, 9);
   });
+  it("보정 한도 '사용 안 함'이면 큰 배율도 적용되고 lighting_fallback 이 붙지 않는다 (완료 기준 15 세 번째 경우)", () => {
+    const strong: LightingReference = { linearMean: { r: 0.9, g: 0.3, b: 0.05 }, areaRatio: 0.4 };
+    const noLimit: LightingConfigDraft = { mode: "gray_world", grayWorld: { minAreaRatio: 0.05, maxGain: "off" } };
+    const p = build({ lightingReference: strong }, { ...CFG, lighting: noLimit });
+    expect(p.qualityFlags).toEqual([]);
+    // 배율이 실제로 적용돼 특징값이 원래 색(무채색 기준)과 달라졌다
+    expect(Math.abs(p.axes.warmCool - ok.axes.warmCool)).toBeGreaterThan(1);
+    // 같은 기준 통계도 한도가 있으면 대체된다
+    expect(build({ lightingReference: strong }).qualityFlags).toEqual(["lighting_fallback"]);
+  });
   it("다른 경고와 함께면 둘 다 들어간다", () => {
     const p = build({ quality: quality({ ...GOOD, colorCast: 20 }), lightingReference: undefined });
     expect(p.qualityFlags).toEqual(["color_cast_high", "lighting_fallback"]);
